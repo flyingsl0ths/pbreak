@@ -10,6 +10,7 @@
 	"scripts": {
 		"release": "spago -x prod.dhall build && npx purs-backend-es bundle-app -p 'browser' && node ./build.mjs",
 		"dev": "concurrently 'spago build --watch' 'node ./build-dev.mjs'",
+		"bundle": "npx spago bundle-app",
 		"format": "npx purs-tidy format-in-place src/**/*.purs"
 	},
 	"repository": {
