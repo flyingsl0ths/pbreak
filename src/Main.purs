@@ -2,77 +2,121 @@ module Main where
 
 import Prelude
 
+import Data.Array (elem)
+import Data.Maybe (Maybe(..), maybe)
 import Effect (Effect)
-import Effect.Console (logShow)
+import Effect.Ref (Ref)
 import Effect.Ref as Ref
-import Data.Int (toNumber)
-import Data.Maybe (Maybe(..))
-import Graphics.Canvas
-  ( Context2D
-  , getContext2D
-  , getCanvasElementById
-  , rect
-  , fillPath
-  , translate
-  , scale
-  , rotate
-  , withContext
-  , setFillStyle
-  )
-import Data.Number as Number
+import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle, translate)
 import Partial.Unsafe (unsafePartial)
-import Web.DOM.Document (toParentNode)
-import Web.DOM.Element (toEventTarget)
-import Web.DOM.ParentNode (QuerySelector(..), querySelector)
-import Web.Event.Event (EventType(..))
+import Web.Event.Event (Event)
 import Web.Event.EventTarget (addEventListener, eventListener)
-import Web.HTML (window)
-import Web.HTML.HTMLDocument (toDocument)
-import Web.HTML.Window (document)
+import Web.HTML (Window, window)
+import Web.HTML.HTMLDocument (toEventTarget)
+import Web.HTML.Window (document, requestAnimationFrame)
+import Web.UIEvent.KeyboardEvent as KE
+import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
 
-render :: Context2D -> Int -> Effect Unit
-render ctx count = void do
-  setFillStyle ctx "#FFF"
+data Direction = Left | Right | Up | Down
 
+derive instance eqDirection :: Eq Direction
+derive instance ordDirection :: Ord Direction
+
+type GameState =
+  { playerSpeed :: Ref Number, wasKeyPressed :: Ref Boolean, direction :: Ref Direction }
+
+type GameState' =
+  { playerSpeed' :: Number, wasKeyPressed' :: Boolean, direction' :: Direction }
+
+unpack :: GameState -> Effect GameState'
+unpack { playerSpeed, wasKeyPressed, direction } =
+  do
+    playerSpeed' <- Ref.read playerSpeed
+    wasKeyPressed' <- Ref.read wasKeyPressed
+    direction' <- Ref.read direction
+    pure $
+      { playerSpeed', wasKeyPressed', direction' }
+
+render :: Context2D -> GameState -> Effect Unit
+render ctx st = void do
   fillPath ctx $ rect ctx
     { x: 0.0
     , y: 0.0
-    , width: 600.0
-    , height: 600.0
+    , width: 1280.0
+    , height: 720.0
     }
 
   setFillStyle ctx "#0F0"
 
-  withContext ctx do
-    let scaleX = Number.sin (toNumber count * Number.tau / 8.0) + 1.5
-    let scaleY = Number.sin (toNumber count * Number.tau / 12.0) + 1.5
+  st' <- unpack st
 
-    translate ctx { translateX: 300.0, translateY: 300.0 }
-    rotate ctx (toNumber count * Number.tau / 360.0)
-    scale ctx { scaleX: scaleX, scaleY: scaleY }
-    translate ctx { translateX: -100.0, translateY: -100.0 }
+  when st'.wasKeyPressed' $ do
+    case st'.direction' of
+      Left -> translate ctx { translateX: -st'.playerSpeed', translateY: 0.0 }
+      Right -> translate ctx { translateX: st'.playerSpeed', translateY: 0.0 }
+      Up -> translate ctx { translateX: 0.0, translateY: -st'.playerSpeed' }
+      Down -> translate ctx { translateX: 0.0, translateY: st'.playerSpeed' }
 
-    fillPath ctx $ rect ctx
-      { x: 0.0
-      , y: 0.0
-      , width: 200.0
-      , height: 200.0
-      }
+  fillPath ctx $ rect ctx
+    { x: 20.0
+    , y: 650.0
+    , width: 200.0
+    , height: 50.0
+    }
+
+loop :: Context2D -> GameState -> Window -> Effect Unit
+loop ctx st w =
+  do
+    setFillStyle ctx "#FFF"
+    clearRect ctx { x: 0.0, y: 0.0, width: 1280.0, height: 720.0 }
+    render ctx st
+    void $ requestAnimationFrame (loop ctx st w) w
+
+keys :: Array String
+keys = map ("Key" <> _) [ "A", "S", "D", "W" ]
+
+forced :: forall a. (Partial => a) -> a
+forced = unsafePartial
+
+changeDirection :: String -> Direction
+changeDirection key =
+  forced $
+    case key of
+      "KeyA" -> Left
+      "KeyD" -> Right
+      "KeyW" -> Up
+      "KeyS" -> Down
+
+handleKeyPress
+  :: GameState
+  -> Event
+  -> Effect Unit
+handleKeyPress { wasKeyPressed, direction } e = do
+  let key = maybe "" identity $ KE.code <$> KE.fromEvent e
+  when (key /= "") $ do
+    void $ Ref.modify (const $ key `elem` keys) wasKeyPressed
+    void $ Ref.modify (const $ changeDirection key) direction
+
+newGameState :: Effect GameState
+newGameState = do
+  playerSpeed <- Ref.new 10.0
+  wasKeyPressed <- Ref.new false
+  direction <- Ref.new Right
+  pure $ { playerSpeed, wasKeyPressed, direction }
 
 main :: Effect Unit
 main = void $ unsafePartial do
   Just canvas <- getCanvasElementById "canvas"
   ctx <- getContext2D canvas
 
-  clickCount <- Ref.new 0
+  win <- window
 
-  render ctx 0
-  doc <- map (toParentNode <<< toDocument) (document =<< window)
-  Just node <- querySelector (QuerySelector "#canvas") doc
+  doc <- document win
 
-  clickListener <- eventListener $ \_ -> do
-    logShow "Mouse clicked!"
-    count <- Ref.modify (\count -> count + 1) clickCount
-    render ctx count
+  gameState <- newGameState
 
-  addEventListener (EventType "click") clickListener true (toEventTarget node)
+  keyPressListener <- eventListener $ handleKeyPress gameState
+
+  addEventListener keyup keyPressListener false (toEventTarget doc)
+
+  loop ctx gameState win
