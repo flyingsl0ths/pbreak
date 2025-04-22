@@ -24,6 +24,9 @@ type Vec2 = { x :: Number, y :: Number }
 derive instance eqDirection :: Eq Direction
 derive instance ordDirection :: Ord Direction
 
+windowWidth :: Number
+windowWidth = 1920.0
+
 windowHeight :: Number
 windowHeight = 1000.0
 
@@ -68,8 +71,8 @@ render ctx st = void do
   fillPath ctx $ rect ctx
     { x: 0.0
     , y: 0.0
-    , width: 1280.0
-    , height: 720.0
+    , width: windowWidth
+    , height: windowHeight
     }
 
   setFillStyle ctx "#0F0"
@@ -88,7 +91,7 @@ loop :: Context2D -> GameState -> Window -> Effect Unit
 loop ctx st w =
   do
     setFillStyle ctx "#FFF"
-    clearRect ctx { x: 0.0, y: 0.0, width: 1280.0, height: 720.0 }
+    clearRect ctx { x: 0.0, y: 0.0, width: windowWidth, height: windowHeight }
     render ctx st
     void $ requestAnimationFrame (loop ctx st w) w
 
@@ -129,7 +132,7 @@ handleKeyPress { playerPosition, playerSpeed, wasKeyPressed, direction } e = do
 
 newGameState :: Effect GameState
 newGameState = do
-  playerSpeed <- Ref.new 10.0
+  playerPosition <- Ref.new { x: 100.0, y: windowHeight / 2.0 + paddleHeight * 7.0 }
   playerSpeed <- Ref.new 50.0
   wasKeyPressed <- Ref.new false
   direction <- Ref.new Right
