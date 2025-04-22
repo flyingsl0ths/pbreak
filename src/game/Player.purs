@@ -15,7 +15,7 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
-import Game.Utils (Direction(..), Vec2, defaultPaddleSize, forced)
+import Game.Utils (Direction(..), Vec2, defaultPaddleSize, forced, windowSize)
 import Graphics.Canvas (Context2D, Rectangle, fillPath, rect)
 import Web.Event.Event (Event)
 import Web.UIEvent.KeyboardEvent as KE
@@ -44,7 +44,7 @@ newPlayer windowWidth windowHeight paddleWidth paddleHeight = do
   playerHeight' <- Ref.new paddleHeight
   position <- Ref.new
     { x: windowWidth / 2.0 - paddleWidth, y: windowHeight / 2.0 + paddleHeight * 7.0 }
-  velocity <- Ref.new 50.0
+  velocity <- Ref.new 65.0
   wasKeyPressed <- Ref.new false
   direction <- Ref.new Right
   pure $
@@ -95,9 +95,13 @@ changeDirection key =
 
 movePlayer :: Vec2 -> Number -> Direction -> Vec2
 movePlayer { x, y } speed direction =
-  case direction of
-    Left -> { x: x - speed, y }
-    Right -> { x: x + speed, y }
+  let
+    windowWidth = windowSize.width - defaultPaddleSize.width / 1.10
+    windowStart = 0.0 - defaultPaddleSize.width / 3.10
+  in
+    case direction of
+      Left -> { x: clamp windowStart windowWidth (x - speed), y }
+      Right -> { x: clamp windowStart windowWidth (x + speed), y }
 
 handlePlayerMovement
   :: PlayerState

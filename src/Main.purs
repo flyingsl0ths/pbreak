@@ -5,7 +5,7 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 
 import Game.Player (PlayerState, drawPlayer, getMovementComponent, handlePlayerMovement, withDefaultPaddleSize)
-import Game.Utils (forced, intoRectangle)
+import Game.Utils (forced, intoRectangle, windowSize)
 
 import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
 import Web.Event.EventTarget (addEventListener, eventListener)
@@ -14,19 +14,13 @@ import Web.HTML.HTMLDocument (toEventTarget)
 import Web.HTML.Window (document, requestAnimationFrame)
 import Web.UIEvent.KeyboardEvent.EventTypes (keydown)
 
-windowWidth :: Number
-windowWidth = 1920.0
-
-windowHeight :: Number
-windowHeight = 1000.0
-
 render :: Context2D -> PlayerState -> Effect Unit
 render ctx st = do
   fillPath ctx $ rect ctx
     { x: 0.0
     , y: 0.0
-    , width: windowWidth
-    , height: windowHeight
+    , width: windowSize.width
+    , height: windowSize.height
     }
 
   setFillStyle ctx st.color
@@ -47,7 +41,7 @@ loop :: Context2D -> PlayerState -> Window -> Effect Unit
 loop ctx st w =
   do
     setFillStyle ctx "#FFF"
-    clearRect ctx { x: 0.0, y: 0.0, width: windowWidth, height: windowHeight }
+    clearRect ctx { x: 0.0, y: 0.0, width: windowSize.width, height: windowSize.height }
     render ctx st
     void $ requestAnimationFrame (loop ctx st w) w
 
@@ -60,7 +54,7 @@ main = void $ forced do
 
   doc <- document win
 
-  gameState <- withDefaultPaddleSize windowWidth windowHeight
+  gameState <- withDefaultPaddleSize windowSize.width windowSize.height
 
   keyPressListener <- eventListener $ handlePlayerMovement gameState
 

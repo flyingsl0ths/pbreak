@@ -4,6 +4,7 @@ module Game.Utils
   , intoRectangle
   , forced
   , defaultPaddleSize
+  , windowSize
   ) where
 
 import Graphics.Canvas (Rectangle)
@@ -24,3 +25,6 @@ forced = unsafePartial
 
 defaultPaddleSize :: { width :: Number, height :: Number }
 defaultPaddleSize = { width: 100.0, height: 20.0 }
+
+windowSize :: { width :: Number, height :: Number }
+windowSize = { width: 1920.0, height: 1000.0 }
