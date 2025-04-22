@@ -3,11 +3,12 @@ module Main where
 import Prelude
 
 import Data.Array (elem)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
+import Effect.Class.Console (logShow)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
-import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle, translate)
+import Graphics.Canvas (Context2D, Rectangle, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
 import Partial.Unsafe (unsafePartial)
 import Web.Event.Event (Event)
 import Web.Event.EventTarget (addEventListener, eventListener)
@@ -15,27 +16,52 @@ import Web.HTML (Window, window)
 import Web.HTML.HTMLDocument (toEventTarget)
 import Web.HTML.Window (document, requestAnimationFrame)
 import Web.UIEvent.KeyboardEvent as KE
-import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
+import Web.UIEvent.KeyboardEvent.EventTypes (keydown)
 
-data Direction = Left | Right | Up | Down
+data Direction = Left | Right
+type Vec2 = { x :: Number, y :: Number }
 
 derive instance eqDirection :: Eq Direction
 derive instance ordDirection :: Ord Direction
 
+windowHeight :: Number
+windowHeight = 1000.0
+
+paddleWidth :: Number
+paddleWidth = 200.0
+
+paddleHeight :: Number
+paddleHeight = 50.0
+
 type GameState =
-  { playerSpeed :: Ref Number, wasKeyPressed :: Ref Boolean, direction :: Ref Direction }
+  { playerPosition :: Ref Vec2
+  , playerSpeed :: Ref Number
+  , wasKeyPressed :: Ref Boolean
+  , direction :: Ref Direction
+  }
 
 type GameState' =
-  { playerSpeed' :: Number, wasKeyPressed' :: Boolean, direction' :: Direction }
+  { playerPosition' :: Vec2
+  , playerSpeed' :: Number
+  , wasKeyPressed' :: Boolean
+  , direction' :: Direction
+  }
 
-unpack :: GameState -> Effect GameState'
-unpack { playerSpeed, wasKeyPressed, direction } =
+readState :: GameState -> Effect GameState'
+readState { playerPosition, playerSpeed, wasKeyPressed, direction } =
   do
+    playerPosition' <- Ref.read playerPosition
     playerSpeed' <- Ref.read playerSpeed
     wasKeyPressed' <- Ref.read wasKeyPressed
     direction' <- Ref.read direction
     pure $
-      { playerSpeed', wasKeyPressed', direction' }
+      { playerPosition', playerSpeed', wasKeyPressed', direction' }
+
+intoRectangle :: Vec2 -> Number -> Number -> Rectangle
+intoRectangle { x, y } width height = { x, y, width, height }
+
+drawPlayer :: Context2D -> Rectangle -> Effect Unit
+drawPlayer ctx r = fillPath ctx $ rect ctx r
 
 render :: Context2D -> GameState -> Effect Unit
 render ctx st = void do
@@ -48,21 +74,15 @@ render ctx st = void do
 
   setFillStyle ctx "#0F0"
 
-  st' <- unpack st
+  st' <- readState st
+
+  let
+    player = intoRectangle st'.playerPosition' paddleWidth paddleHeight
 
   when st'.wasKeyPressed' $ do
     case st'.direction' of
-      Left -> translate ctx { translateX: -st'.playerSpeed', translateY: 0.0 }
-      Right -> translate ctx { translateX: st'.playerSpeed', translateY: 0.0 }
-      Up -> translate ctx { translateX: 0.0, translateY: -st'.playerSpeed' }
-      Down -> translate ctx { translateX: 0.0, translateY: st'.playerSpeed' }
-
-  fillPath ctx $ rect ctx
-    { x: 20.0
-    , y: 650.0
-    , width: 200.0
-    , height: 50.0
-    }
+      Left -> drawPlayer ctx $ player
+      Right -> drawPlayer ctx $ player
 
 loop :: Context2D -> GameState -> Window -> Effect Unit
 loop ctx st w =
@@ -84,28 +104,39 @@ changeDirection key =
     case key of
       "KeyA" -> Left
       "KeyD" -> Right
-      "KeyW" -> Up
-      "KeyS" -> Down
+
+movePlayer :: Vec2 -> Number -> Direction -> Vec2
+movePlayer { x, y } speed direction =
+  case direction of
+    Left -> { x: x - speed, y }
+    Right -> { x: x + speed, y }
 
 handleKeyPress
   :: GameState
   -> Event
   -> Effect Unit
-handleKeyPress { wasKeyPressed, direction } e = do
-  let key = maybe "" identity $ KE.code <$> KE.fromEvent e
-  when (key /= "") $ do
-    void $ Ref.modify (const $ key `elem` keys) wasKeyPressed
-    void $ Ref.modify (const $ changeDirection key) direction
+handleKeyPress { playerPosition, playerSpeed, wasKeyPressed, direction } e = do
+  case KE.code <$> KE.fromEvent e of
+    Just key' -> do
+      let validKeyPressed = key' `elem` keys
+      when validKeyPressed $ do
+        Ref.modify' (const $ { state: validKeyPressed, value: unit }) wasKeyPressed
+        direction' <- Ref.modify (const $ changeDirection key') direction
+        v <- Ref.read playerSpeed
+        Ref.modify' (\pos -> { state: movePlayer pos v direction', value: unit })
+          playerPosition
+    Nothing -> pure unit
 
 newGameState :: Effect GameState
 newGameState = do
   playerSpeed <- Ref.new 10.0
+  playerSpeed <- Ref.new 50.0
   wasKeyPressed <- Ref.new false
   direction <- Ref.new Right
-  pure $ { playerSpeed, wasKeyPressed, direction }
+  pure $ { playerPosition, playerSpeed, wasKeyPressed, direction }
 
 main :: Effect Unit
-main = void $ unsafePartial do
+main = void $ forced do
   Just canvas <- getCanvasElementById "canvas"
   ctx <- getContext2D canvas
 
@@ -117,6 +148,6 @@ main = void $ unsafePartial do
 
   keyPressListener <- eventListener $ handleKeyPress gameState
 
-  addEventListener keyup keyPressListener false (toEventTarget doc)
+  addEventListener keydown keyPressListener false (toEventTarget doc)
 
   loop ctx gameState win
