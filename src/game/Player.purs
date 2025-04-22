@@ -10,13 +10,12 @@ module Game.Player
 
 import Prelude
 
-import Game.Utils (Direction(..), Vec2, defaultPaddleSize, forced)
-
-import Data.Array (elem)
+import Data.Array (elem, (:))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
+import Game.Utils (Direction(..), Vec2, defaultPaddleSize, forced)
 import Graphics.Canvas (Context2D, Rectangle, fillPath, rect)
 import Web.Event.Event (Event)
 import Web.UIEvent.KeyboardEvent as KE
@@ -83,14 +82,16 @@ getMovementComponent
     }
 
 keys :: Array String
-keys = map ("Key" <> _) [ "A", "S", "D", "W", "ArrowLeft", "ArrowRight" ]
+keys = "ArrowLeft" : ("ArrowRight" : map ("Key" <> _) [ "A", "S", "D", "W" ])
 
 changeDirection :: String -> Direction
 changeDirection key =
   forced $
     case key of
       "KeyA" -> Left
+      "ArrowLeft" -> Left
       "KeyD" -> Right
+      "ArrowRight" -> Right
 
 movePlayer :: Vec2 -> Number -> Direction -> Vec2
 movePlayer { x, y } speed direction =
