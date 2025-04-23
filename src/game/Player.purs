@@ -8,13 +8,15 @@ module Game.Player
 
 import Prelude
 
-import Data.Array (elem)
+import Data.Array (elem, (:))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
+
 import Game.Utils (Direction(..), Vec2, defaultPaddleSize, forced, intoRectangle)
 import Graphics.Canvas (Context2D, fillPath, rect, setFillStyle)
+import Graphics.Canvas (Context2D, Rectangle, fillPath, rect)
 import Web.Event.Event (Event)
 import Web.UIEvent.KeyboardEvent as KE
 
@@ -36,7 +38,7 @@ newPlayer windowWidth windowHeight paddleWidth paddleHeight = do
     { x: windowWidth / 2.0 - paddleWidth / 2.0
     , y: windowHeight / 2.0 + paddleHeight * 17.0
     }
-  velocity <- Ref.new 50.0
+  velocity <- Ref.new 65.0
   wasKeyPressed <- Ref.new false
   direction <- Ref.new Right
   pure $
@@ -58,20 +60,26 @@ withDefaultPaddleSize windowWidth windowHeight =
     defaultPaddleSize.height
 
 keys :: Array String
-keys = map ("Key" <> _) [ "A", "S", "D", "W", "ArrowLeft", "ArrowRight" ]
+keys = "ArrowLeft" : ("ArrowRight" : map ("Key" <> _) [ "A", "S", "D", "W" ])
 
 changeDirection :: String -> Direction
 changeDirection key =
   forced $
     case key of
       "KeyA" -> Left
+      "ArrowLeft" -> Left
       "KeyD" -> Right
+      "ArrowRight" -> Right
 
 movePlayer :: Vec2 -> Number -> Direction -> Vec2
 movePlayer { x, y } speed direction =
-  case direction of
-    Left -> { x: x - speed, y }
-    Right -> { x: x + speed, y }
+  let
+    windowWidth = windowSize.width - defaultPaddleSize.width / 1.10
+    windowStart = 0.0 - defaultPaddleSize.width / 3.10
+  in
+    case direction of
+      Left -> { x: clamp windowStart windowWidth (x - speed), y }
+      Right -> { x: clamp windowStart windowWidth (x + speed), y }
 
 handlePlayerMovement
   :: PlayerState
