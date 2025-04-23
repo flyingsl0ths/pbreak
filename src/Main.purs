@@ -1,12 +1,12 @@
 module Main where
 
 import Prelude
+
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-
-import Game.Player (PlayerState, drawPlayer, getMovementComponent, handlePlayerMovement, withDefaultPaddleSize)
-import Game.Utils (forced, intoRectangle)
-
+import Game.Bricks (drawBricks)
+import Game.Player (PlayerState, drawPlayer, handlePlayerMovement, withDefaultPaddleSize)
+import Game.Utils (forced)
 import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
 import Web.Event.EventTarget (addEventListener, eventListener)
 import Web.HTML (Window, window)
@@ -29,19 +29,9 @@ render ctx st = do
     , height: windowHeight
     }
 
-  setFillStyle ctx st.color
+  drawBricks ctx
 
-  { position
-  , paddleWidth
-  , paddleHeight
-  , wasKeyPressed
-  } <- getMovementComponent st
-
-  let
-    player = intoRectangle position paddleWidth paddleHeight
-
-  when wasKeyPressed $ do
-    drawPlayer ctx $ player
+  drawPlayer ctx st
 
 loop :: Context2D -> PlayerState -> Window -> Effect Unit
 loop ctx st w =

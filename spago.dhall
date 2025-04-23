@@ -1,10 +1,10 @@
-
 { name = "my-project"
 , dependencies =
   [ "arrays"
   , "canvas"
   , "console"
   , "effect"
+  , "integers"
   , "maybe"
   , "partial"
   , "prelude"
