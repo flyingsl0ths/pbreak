@@ -7,7 +7,7 @@ import Effect (Effect)
 
 import Game.Bricks (drawBricks)
 import Game.Player (PlayerState, drawPlayer, handlePlayerMovement, withDefaultPaddleSize)
-import Game.Utils (forced,windowSize)
+import Game.Utils (forced, windowSize)
 
 import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
 import Web.Event.EventTarget (addEventListener, eventListener)

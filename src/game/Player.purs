@@ -13,10 +13,8 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
-
-import Game.Utils (Direction(..), Vec2, defaultPaddleSize, forced, intoRectangle)
+import Game.Utils (Direction(..), Vec2, defaultPaddleSize, forced, intoRectangle, windowSize)
 import Graphics.Canvas (Context2D, fillPath, rect, setFillStyle)
-import Graphics.Canvas (Context2D, Rectangle, fillPath, rect)
 import Web.Event.Event (Event)
 import Web.UIEvent.KeyboardEvent as KE
 
