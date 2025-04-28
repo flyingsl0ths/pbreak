@@ -5,11 +5,12 @@ module Game.Utils
   , forced
   , defaultPaddleSize
   , windowSize
+  , forM_
   ) where
 
+import Prelude
 import Graphics.Canvas (Rectangle)
 import Partial.Unsafe (unsafePartial)
-import Prelude (class Eq, class Ord)
 
 data Direction = Left | Right
 type Vec2 = { x :: Number, y :: Number }
@@ -28,3 +29,16 @@ defaultPaddleSize = { width: 100.0, height: 20.0 }
 
 windowSize :: { width :: Number, height :: Number }
 windowSize = { width: 1920.0, height: 1000.0 }
+
+forM_ :: forall m a. Monad m => Int -> Int -> (Int -> m a) -> m Unit
+forM_ lo hi f
+  | lo < hi = iter 0
+      where
+      iter i =
+        if i == hi then (pure unit)
+        else
+          ( do
+              void $ f i
+              iter (i + 1)
+          )
+  | otherwise = pure unit

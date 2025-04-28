@@ -4,23 +4,10 @@ import Prelude
 
 import Data.Int (toNumber)
 import Effect (Effect)
-import Game.Utils (defaultPaddleSize)
+import Game.Utils (defaultPaddleSize, forM_)
 import Graphics.Canvas (Context2D, fillPath, rect, setFillStyle)
 
 type Color = String
-
-forM_ :: forall m a. Monad m => Int -> Int -> (Int -> m a) -> m Unit
-forM_ lo hi f
-  | lo < hi = iter 0
-      where
-      iter i =
-        if i == hi then (pure unit)
-        else
-          ( do
-              void $ f i
-              iter (i + 1)
-          )
-  | otherwise = pure unit
 
 toColor :: Int -> Color
 toColor r =
