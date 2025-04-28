@@ -5,14 +5,14 @@ import Prelude
 import Effect (Effect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
-import Game.Utils (Vec2)
+import Game.Utils (Vec2, defaultPaddleSize)
 import Graphics.Canvas (Context2D, fillPath, rect, setFillStyle)
 
 defaultBallSize :: Number
 defaultBallSize = 10.0
 
 defaultBallVelocity :: Vec2
-defaultBallVelocity = { x: 10.0, y: -10.0 }
+defaultBallVelocity = { x: 5.0, y: -5.0 }
 
 type BallState =
   { position :: Ref Vec2
@@ -23,7 +23,7 @@ newBall :: Number -> Number -> Effect BallState
 newBall windowWidth windowHeight = do
   position <- Ref.new
     { x: windowWidth / 2.0 - defaultBallSize / 2.0
-    , y: windowHeight / 2.0 + defaultBallSize
+    , y: windowHeight / 2.0 + defaultPaddleSize.height * 16.5
     }
   velocity <- Ref.new defaultBallVelocity
   pure $ { position, velocity }
@@ -37,7 +37,7 @@ updateBall { position, velocity } = do
 drawBall :: Context2D -> BallState -> Effect Unit
 drawBall ctx { position } = do
   pos <- Ref.read position
-  setFillStyle ctx "#D3D3D3"
+  setFillStyle ctx "#C0C0C0"
   fillPath ctx $ rect ctx
     { x: pos.x
     , y: pos.y

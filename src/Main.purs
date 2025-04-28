@@ -21,7 +21,7 @@ type GameState =
   }
 
 render :: Context2D -> GameState -> Effect Unit
-render ctx { paddle } = do
+render ctx { paddle, ball } = do
   fillPath ctx $ rect ctx
     { x: 0.0
     , y: 0.0
@@ -31,7 +31,7 @@ render ctx { paddle } = do
 
   drawScore ctx paddle
 
-  -- drawBall ctx ball
+  drawBall ctx ball
 
   drawBricks ctx
 
@@ -45,7 +45,7 @@ loop ctx st w =
   do
     setFillStyle ctx "#FFF"
     clearRect ctx { x: 0.0, y: 0.0, width: windowSize.width, height: windowSize.height }
-    update st
+    -- update st
     render ctx st
     void $ requestAnimationFrame (loop ctx st w) w
 
