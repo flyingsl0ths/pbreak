@@ -9,7 +9,7 @@ import Game.Bricks (drawBricks)
 import Game.Paddle (PaddleState, drawPaddle, drawScore, handlePaddleMovement, withDefaultPaddleSize)
 import Game.Utils (forced, windowSize)
 
-import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
+import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle, setFont)
 import Web.Event.EventTarget (addEventListener, eventListener)
 import Web.HTML (Window, window)
 import Web.HTML.HTMLDocument (toEventTarget)
@@ -24,6 +24,8 @@ render ctx st = do
     , width: windowSize.width
     , height: windowSize.height
     }
+
+  drawScore ctx paddle
 
   drawBricks ctx
 
@@ -52,4 +54,5 @@ main = void $ forced do
 
   addEventListener keydown keyPressListener false (toEventTarget doc)
 
-  loop ctx gameState win
+  setFont ctx "20px Joystix"
+
