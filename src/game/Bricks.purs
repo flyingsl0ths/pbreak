@@ -44,7 +44,7 @@ drawBricks ctx = void $
           setFillStyle ctx $ toColor r
           fillPath ctx $ rect ctx
             { x: toNumber c * defaultPaddleSize.width + 11.0
-            , y: toNumber r * defaultPaddleSize.height * 2.0
+            , y: toNumber r * defaultPaddleSize.height * 2.0 + 55.0
             , width: defaultPaddleSize.width - 5.0
             , height: defaultPaddleSize.height + 15.0
             }
