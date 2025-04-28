@@ -6,7 +6,7 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 
 import Game.Bricks (drawBricks)
-import Game.Player (PlayerState, drawPlayer, handlePlayerMovement, withDefaultPaddleSize)
+import Game.Paddle (PaddleState, drawPaddle, drawScore, handlePaddleMovement, withDefaultPaddleSize)
 import Game.Utils (forced, windowSize)
 
 import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
@@ -46,7 +46,7 @@ main = void $ forced do
 
   doc <- document win
 
-  gameState <- withDefaultPaddleSize windowSize.width windowSize.height
+  playerState <- withDefaultPaddleSize windowSize.width windowSize.height
 
   keyPressListener <- eventListener $ handlePlayerMovement gameState
 
