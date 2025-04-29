@@ -29,13 +29,17 @@ toColor r =
 drawBricks :: Context2D -> Effect Unit
 drawBricks ctx = void $
   do
-    forM_ 0 8 $ \r ->
-      forM_ 0 19 $ \c ->
-        do
-          setFillStyle ctx $ toColor r
-          fillPath ctx $ rect ctx
-            { x: toNumber c * defaultPaddleSize.width + 11.0
-            , y: toNumber r * defaultPaddleSize.height * 2.0 + 55.0
-            , width: defaultPaddleSize.width - 5.0
-            , height: defaultPaddleSize.height + 15.0
-            }
+    let columns = 19
+    let rows = 12
+    let total = rows * columns
+    forM_ 0 total $ \i ->
+      do
+        let r = i `div` columns
+        let c = i `mod` columns
+        setFillStyle ctx $ toColor r
+        fillPath ctx $ rect ctx
+          { x: toNumber c * defaultPaddleSize.width + 11.0
+          , y: toNumber r * defaultPaddleSize.height * 2.0 + 55.0
+          , width: defaultPaddleSize.width - 5.0
+          , height: defaultPaddleSize.height + 15.0
+          }
