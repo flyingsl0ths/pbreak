@@ -13,13 +13,17 @@ toColor :: Int -> Color
 toColor r =
   case r of
     0 -> "#FFB3B3"
-    1 -> "#FFD1A3"
-    2 -> "#FFFFB3"
-    3 -> "#B3FFB3"
-    4 -> "#B3FFFF"
-    5 -> "#B3D1FF"
-    6 -> "#C3B3FF"
-    7 -> "#E3B3FF"
+    1 -> "#AFCBFF"
+    2 -> "#FFE5B4"
+    3 -> "#FFD1A3"
+    4 -> "#FFFFB3"
+    5 -> "#B3FFB3"
+    6 -> "#B3FFFF"
+    7 -> "#B3D1FF"
+    8 -> "#C3B3FF"
+    9 -> "#E3B3FF"
+    10 -> "#F4C2C2"
+    11 -> "#BFD8B8"
     _ -> "#D3D3D3"
 
 drawBricks :: Context2D -> Effect Unit
