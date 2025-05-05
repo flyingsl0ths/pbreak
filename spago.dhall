@@ -4,6 +4,7 @@
   , "canvas"
   , "console"
   , "effect"
+  , "foldable-traversable"
   , "integers"
   , "maybe"
   , "partial"

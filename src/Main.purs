@@ -5,7 +5,7 @@ import Prelude
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Game.Ball (BallState, drawBall, newBall, updateBall)
-import Game.Bricks (drawBricks)
+import Game.Bricks (Bricks, defaultBrickGridSize, drawBricks, genBricks)
 import Game.Paddle (PaddleState, drawPaddle, drawScore, handlePaddleMovement, withDefaultPaddleSize)
 import Game.Utils (forced, windowSize)
 import Graphics.Canvas (Context2D, clearRect, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle, setFont)
@@ -18,10 +18,11 @@ import Web.UIEvent.KeyboardEvent.EventTypes (keydown)
 type GameState =
   { paddle :: PaddleState
   , ball :: BallState
+  , bricks :: Bricks
   }
 
 render :: Context2D -> GameState -> Effect Unit
-render ctx { paddle, ball } = do
+render ctx { paddle, ball, bricks } = do
   fillPath ctx $ rect ctx
     { x: 0.0
     , y: 0.0
@@ -33,7 +34,7 @@ render ctx { paddle, ball } = do
 
   drawBall ctx ball
 
-  drawBricks ctx
+  drawBricks ctx bricks
 
   drawPaddle ctx paddle
 
@@ -68,4 +69,6 @@ main = void $ forced do
 
   setFont ctx "20px Joystix"
 
-  loop ctx { paddle: playerState, ball: ballState } win
+  let { rows, columns } = defaultBrickGridSize
+
+  loop ctx { paddle: playerState, ball: ballState, bricks: genBricks rows columns } win
