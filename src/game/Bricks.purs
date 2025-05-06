@@ -21,6 +21,12 @@ type Color = String
 type Brick = { x :: Number, y :: Number, color :: Ref String }
 type Bricks = Array (Effect Brick)
 
+padding
+  :: { x :: Number
+     , y :: Number
+     }
+padding = { x: 5.0, y: 15.0 }
+
 defaultBrickGridSize
   :: { columns :: Int
      , rows :: Int
@@ -30,8 +36,8 @@ defaultBrickGridSize
 defaultBrickGridSize =
   { rows: 12
   , columns: 16
-  , width: defaultPaddleSize.width - 5.0
-  , height: defaultPaddleSize.height + 15.0
+  , width: defaultPaddleSize.width - padding.x
+  , height: defaultPaddleSize.height + padding.y
   }
 
 brickGridOffset
@@ -88,8 +94,8 @@ drawBricks ctx bs =
             { x
             , y
             , width:
-                if c == totalColumns' then defaultBrickGridSize.width -
-                  5.0
+                if c == totalColumns' then
+                  defaultBrickGridSize.width - padding.x
                 else defaultBrickGridSize.width
             , height: defaultBrickGridSize.height
             }
