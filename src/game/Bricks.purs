@@ -8,19 +8,18 @@ module Game.Bricks
 
 import Prelude
 
-import Game.Utils (defaultPaddleSize)
-
 import Data.Array ((..))
-import Data.Foldable (for_)
+import Data.FoldableWithIndex (forWithIndex_)
 import Data.Int (toNumber)
 import Effect (Effect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
-
+import Game.Paddle (defaultPaddleSize)
 import Graphics.Canvas (Context2D, fillPath, rect, setFillStyle)
 
 type Color = String
 type Brick = { x :: Number, y :: Number, color :: Ref String }
+type Bricks = Array (Effect Brick)
 
 defaultBrickGridSize
   :: { columns :: Int
@@ -30,12 +29,16 @@ defaultBrickGridSize
      }
 defaultBrickGridSize =
   { rows: 12
-  , columns: 19
+  , columns: 16
   , width: defaultPaddleSize.width - 5.0
   , height: defaultPaddleSize.height + 15.0
   }
 
-type Bricks = Array (Effect Brick)
+brickGridOffset
+  :: { x :: Number
+     , y :: Number
+     }
+brickGridOffset = { x: 5.0, y: 60.0 }
 
 toColor :: Int -> Color
 toColor r =
@@ -62,8 +65,8 @@ genBricks rows columns =
         let c = i `mod` columns
         color <- Ref.new (toColor r)
         pure $
-          { x: toNumber c * defaultPaddleSize.width + 11.0
-          , y: toNumber r * defaultPaddleSize.height * 2.0 + 55.0
+          { x: toNumber c * defaultPaddleSize.width + brickGridOffset.x
+          , y: toNumber r * defaultPaddleSize.height * 2.0 + brickGridOffset.y
           , color
           }
     )
@@ -71,14 +74,22 @@ genBricks rows columns =
 
 drawBricks :: Context2D -> Bricks -> Effect Unit
 drawBricks ctx bs =
-  for_ bs $ \b -> do
-    { x, y, color } <- b
-    color' <- Ref.read color
-    setFillStyle ctx color'
-    fillPath ctx
-      $ rect ctx
-          { x
-          , y
-          , width: defaultBrickGridSize.width
-          , height: defaultBrickGridSize.height
-          }
+  let
+    totalColumns = defaultBrickGridSize.columns
+    totalColumns' = totalColumns - 1
+  in
+    forWithIndex_ bs $ \i b -> do
+      { x, y, color } <- b
+      let c = i `mod` totalColumns
+      color' <- Ref.read color
+      setFillStyle ctx color'
+      fillPath ctx
+        $ rect ctx
+            { x
+            , y
+            , width:
+                if c == totalColumns' then defaultBrickGridSize.width -
+                  5.0
+                else defaultBrickGridSize.width
+            , height: defaultBrickGridSize.height
+            }

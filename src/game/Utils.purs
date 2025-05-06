@@ -3,7 +3,6 @@ module Game.Utils
   , Vec2
   , intoRectangle
   , forced
-  , defaultPaddleSize
   , windowSize
   , forM_
   ) where
@@ -23,9 +22,6 @@ intoRectangle { x, y } width height = { x, y, width, height }
 
 forced :: forall a. (Partial => a) -> a
 forced = unsafePartial
-
-defaultPaddleSize :: { width :: Number, height :: Number }
-defaultPaddleSize = { width: 100.0, height: 20.0 }
 
 windowSize :: { width :: Number, height :: Number }
 windowSize = { width: 1920.0, height: 1000.0 }

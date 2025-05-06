@@ -1,5 +1,6 @@
 module Game.Paddle
   ( PaddleState
+  , defaultPaddleSize
   , newPaddle
   , withDefaultPaddleSize
   , handlePaddleMovement
@@ -14,7 +15,7 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
-import Game.Utils (Direction(..), Vec2, defaultPaddleSize, forced, intoRectangle, windowSize)
+import Game.Utils (Direction(..), Vec2, forced, intoRectangle, windowSize)
 import Graphics.Canvas (Context2D, fillPath, fillText, rect, setFillStyle)
 import Web.Event.Event (Event)
 import Web.UIEvent.KeyboardEvent as KE
@@ -29,6 +30,9 @@ type PaddleState =
   , paddleHeight :: Ref Number
   , score :: Ref Int
   }
+
+defaultPaddleSize :: { width :: Number, height :: Number }
+defaultPaddleSize = { width: 120.0, height: 20.0 }
 
 newPaddle :: Number -> Number -> Number -> Number -> Effect PaddleState
 newPaddle windowWidth windowHeight paddleWidth paddleHeight = do
@@ -115,5 +119,5 @@ drawScore ctx { score } = do
   fillText
     ctx
     scoreText
-    12.0
-    30.0
+    10.0
+    33.0
